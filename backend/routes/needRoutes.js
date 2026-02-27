@@ -1,0 +1,11 @@
+const express = require('express')
+const router = express.Router()
+const { getNeeds, getNeed, createNeed, acceptNeed, fulfillNeed, deleteNeed } = require('../controllers/needController')
+const { protect, adminOnly } = require('../middleware/authMiddleware')
+router.get('/', getNeeds)
+router.get('/:id', getNeed)
+router.post('/', protect, createNeed)
+router.put('/:id/accept', protect, acceptNeed)
+router.put('/:id/fulfill', protect, fulfillNeed)
+router.delete('/:id', protect, adminOnly, deleteNeed)
+module.exports = router
