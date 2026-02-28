@@ -2,90 +2,71 @@ import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api'
 
-const CATEGORIES = ['All', 'Groceries', 'Repairs', 'Tutoring', 'Transport', 'Moving', 'Tech Help']
-const urgencyColor = { high:'bg-red-100 text-red-600', med:'bg-amber-100 text-amber-600', low:'bg-green-100 text-green-600' }
-const urgencyLabel = { high:'Urgent', med:'Moderate', low:'Flexible' }
-const categoryIcon = { Groceries:'🛒', Repairs:'🔧', Tutoring:'📚', Transport:'🚗', Moving:'📦', 'Tech Help':'💻', Other:'📌' }
+const CATS = ['All','Groceries','Repairs','Tutoring','Transport','Moving','Tech Help']
+const catIcon = {Groceries:'🛒',Repairs:'🔧',Tutoring:'📚',Transport:'🚗',Moving:'📦','Tech Help':'💻',Other:'📌'}
+const urgencyClass = {high:'badge-high',med:'badge-med',low:'badge-low'}
+const urgencyLabel = {high:'Urgent',med:'Moderate',low:'Flexible'}
+const initials = (name) => name?.split(' ').map(n=>n[0]).join('').toUpperCase() || '?'
 
 export default function BrowseNeeds() {
   const [needs, setNeeds] = useState([])
   const [loading, setLoading] = useState(true)
-  const [category, setCategory] = useState('All')
+  const [cat, setCat] = useState('All')
   const [search, setSearch] = useState('')
 
   useEffect(() => {
-    api.getNeeds({}).then(data => {
-      setNeeds(Array.isArray(data) ? data : [])
-      setLoading(false)
-    })
+    api.getNeeds({}).then(data => { setNeeds(Array.isArray(data)?data:[]); setLoading(false) })
   }, [])
 
   const filtered = needs.filter(n =>
-    (category === 'All' || n.category === category) &&
-    (n.title.toLowerCase().includes(search.toLowerCase()) || n.description.toLowerCase().includes(search.toLowerCase()))
+    (cat==='All'||n.category===cat) &&
+    ((n.title||'').toLowerCase().includes(search.toLowerCase())||(n.description||'').toLowerCase().includes(search.toLowerCase()))
   )
 
   return (
-    <div className="min-h-screen bg-[#faf8f3] pt-24 pb-16">
-      <div className="max-w-6xl mx-auto px-6">
-        <div className="flex flex-wrap items-center justify-between gap-4 mb-10">
-          <div>
-            <h1 className="font-black text-4xl mb-1" style={{fontFamily:'Georgia,serif'}}>Community Needs</h1>
-            <p className="text-gray-500">Browse and help with open requests in your community</p>
-          </div>
-          <Link to="/needs/post" className="px-6 py-3 bg-[#f4a261] text-white font-semibold rounded-full hover:bg-[#e76f51] transition-all hover:-translate-y-0.5">+ Post a Need</Link>
+    <div className="page">
+      <div style={{background:'var(--bg2)',padding:'52px 16px 0',borderBottom:'1px solid var(--border)',position:'sticky',top:0,zIndex:50}}>
+        <div className="playfair" style={{fontSize:'26px',fontWeight:'900',marginBottom:'14px'}}>Community Needs</div>
+        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'var(--bg)',borderRadius:'16px',padding:'12px 16px',marginBottom:'12px',border:'1px solid var(--border)'}}>
+          <span>🔍</span>
+          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search needs..."
+            style={{background:'none',border:'none',outline:'none',fontFamily:'Outfit,sans-serif',fontSize:'14px',color:'var(--text)',flex:1}}/>
         </div>
-        <div className="relative mb-6">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-          <input type="text" placeholder="Search needs..."
-            className="w-full pl-11 pr-4 py-3.5 bg-white border border-[#e8e2d9] rounded-2xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors"
-            value={search} onChange={e => setSearch(e.target.value)} />
-        </div>
-        <div className="flex gap-2 flex-wrap mb-8">
-          {CATEGORIES.map(cat => (
-            <button key={cat} onClick={() => setCategory(cat)}
-              className={'px-4 py-2 rounded-full text-sm font-semibold transition-all ' + (category === cat ? 'bg-[#1a472a] text-white' : 'bg-white border border-[#e8e2d9] text-gray-600 hover:border-[#1a472a]')}>
-              {cat}
+        <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'14px',scrollbarWidth:'none'}}>
+          {CATS.map(c=>(
+            <button key={c} onClick={()=>setCat(c)}
+              style={{padding:'7px 16px',borderRadius:'20px',fontSize:'12px',fontWeight:'600',whiteSpace:'nowrap',cursor:'pointer',border:'none',
+                background:cat===c?'var(--primary)':'var(--bg)',color:cat===c?'white':'var(--text2)'}}>
+              {c}
             </button>
           ))}
         </div>
+      </div>
+      <div style={{padding:'16px'}}>
         {loading ? (
-          <div className="text-center py-20 text-gray-400">
-            <div className="text-5xl mb-4">⏳</div>
-            <p className="font-semibold">Loading needs...</p>
-          </div>
-        ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {filtered.map(need => (
-              <div key={need._id} className="bg-white border border-[#e8e2d9] rounded-2xl p-6 hover:shadow-lg hover:-translate-y-1 transition-all">
-                <div className="flex justify-between items-start mb-4">
-                  <span className="text-sm font-semibold text-[#1a472a]">{categoryIcon[need.category] || '📌'} {need.category}</span>
-                  <span className={'text-xs font-semibold px-3 py-1 rounded-full ' + (urgencyColor[need.urgency] || 'bg-gray-100 text-gray-600')}>{urgencyLabel[need.urgency] || need.urgency}</span>
-                </div>
-                <h3 className="font-bold text-lg mb-2 leading-snug" style={{fontFamily:'Georgia,serif'}}>{need.title}</h3>
-                <p className="text-gray-500 text-sm leading-relaxed mb-5">{need.description}</p>
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-[#2d6a4f] to-[#f4a261] flex items-center justify-center text-white text-xs font-bold">
-                      {need.postedBy?.name?.split(' ').map(n=>n[0]).join('') || '?'}
-                    </div>
-                    <span className="text-xs font-semibold text-gray-500">{need.postedBy?.name || 'Anonymous'}</span>
-                  </div>
-                  <Link to={'/needs/' + need._id}
-                    className={'text-xs font-semibold px-4 py-2 rounded-full transition-all ' + (need.status === 'Open' ? 'bg-[#1a472a] text-white hover:bg-[#2d6a4f]' : 'bg-gray-100 text-gray-400')}>
-                    {need.status === 'Open' ? 'Help Now' : need.status}
-                  </Link>
-                </div>
+          <div style={{textAlign:'center',padding:'60px 0',color:'var(--text3)'}}><div style={{fontSize:'40px',marginBottom:'12px'}}>⏳</div><div style={{fontWeight:'600'}}>Loading needs...</div></div>
+        ) : filtered.length===0 ? (
+          <div style={{textAlign:'center',padding:'60px 0',color:'var(--text3)'}}><div style={{fontSize:'40px',marginBottom:'12px'}}>🔍</div><div style={{fontWeight:'600'}}>No needs found</div></div>
+        ) : filtered.map(need=>(
+          <div key={need._id} className="card" style={{padding:'16px',marginBottom:'12px'}}>
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
+              <span style={{fontSize:'11px',fontWeight:'700',color:'var(--primary)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{catIcon[need.category]||'📌'} {need.category}</span>
+              <span className={'badge '+(urgencyClass[need.urgency]||'badge-low')}>{urgencyLabel[need.urgency]||need.urgency}</span>
+            </div>
+            <div className="playfair" style={{fontSize:'16px',fontWeight:'700',marginBottom:'6px',lineHeight:1.3}}>{need.title}</div>
+            <div style={{fontSize:'12px',color:'var(--text2)',lineHeight:1.6,marginBottom:'14px'}}>{(need.description||'').slice(0,90)}...</div>
+            {need.location&&<div style={{fontSize:'11px',color:'var(--text3)',marginBottom:'10px'}}>📍 {need.location}</div>}
+            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
+              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
+                <div className="avatar" style={{width:'28px',height:'28px',fontSize:'10px'}}>{initials(need.postedBy?.name)}</div>
+                <span style={{fontSize:'12px',fontWeight:'600',color:'var(--text2)'}}>{need.postedBy?.name||'Anonymous'}</span>
               </div>
-            ))}
+              <Link to={'/needs/'+need._id} style={{background:need.status==='Open'?'var(--primary)':'var(--bg)',color:need.status==='Open'?'white':'var(--text3)',fontSize:'11px',fontWeight:'700',padding:'8px 16px',borderRadius:'20px',textDecoration:'none'}}>
+                {need.status==='Open'?'Help Now':need.status}
+              </Link>
+            </div>
           </div>
-        )}
-        {filtered.length === 0 && !loading && (
-          <div className="text-center py-20 text-gray-400">
-            <div className="text-5xl mb-4">🔍</div>
-            <p className="font-semibold">No needs found</p>
-          </div>
-        )}
+        ))}
       </div>
     </div>
   )

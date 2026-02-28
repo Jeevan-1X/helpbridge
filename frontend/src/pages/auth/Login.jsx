@@ -3,55 +3,41 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 export default function Login() {
-  const [form, setForm] = useState({ email: '', password: '' })
+  const [form, setForm] = useState({email:'',password:''})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+  const handle = async (e) => {
+    e.preventDefault(); setLoading(true); setError('')
     const result = await login(form.email, form.password)
-    if (result.success) {
-      navigate('/')
-    } else {
-      setError(result.message || 'Login failed')
-    }
-    setLoading(false)
+    if (result.success) navigate('/')
+    else { setError(result.message||'Login failed'); setLoading(false) }
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f3] flex items-center justify-center px-4 pt-20">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <div className="w-14 h-14 bg-[#1a472a] rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">🤝</div>
-          <h1 className="font-black text-4xl mb-2" style={{fontFamily:'Georgia,serif'}}>Welcome back</h1>
-          <p className="text-gray-500">Sign in to your HelpBridge account</p>
-        </div>
-        <div className="bg-white border border-[#e8e2d9] rounded-3xl p-8 shadow-sm">
-          {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">{error}</div>}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold mb-2">Email</label>
-              <input type="email" required placeholder="you@example.com"
-                className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors"
-                value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Password</label>
-              <input type="password" required placeholder="••••••••"
-                className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors"
-                value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-3.5 bg-[#1a472a] text-white font-semibold rounded-full hover:bg-[#2d6a4f] transition-all hover:-translate-y-0.5 disabled:opacity-50">
-              {loading ? 'Signing in...' : 'Sign In'}
+    <div style={{minHeight:'100vh',background:'var(--bg)',display:'flex',flexDirection:'column'}}>
+      <div style={{background:'var(--primary)',padding:'60px 20px 40px',textAlign:'center',position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:'-40px',right:'-40px',width:'160px',height:'160px',background:'rgba(255,255,255,0.05)',borderRadius:'50%'}}/>
+        <div style={{fontSize:'48px',marginBottom:'16px'}}>🤝</div>
+        <div className="playfair" style={{fontSize:'28px',fontWeight:'900',color:'white'}}>Welcome Back</div>
+        <div style={{fontSize:'13px',color:'rgba(255,255,255,0.6)',marginTop:'6px'}}>Sign in to your account</div>
+      </div>
+      <div style={{flex:1,padding:'24px 16px'}}>
+        <div className="card" style={{padding:'24px'}}>
+          {error&&<div style={{background:'#fee2e2',border:'1px solid #fca5a5',color:'#dc2626',borderRadius:'12px',padding:'12px 16px',marginBottom:'16px',fontSize:'13px'}}>{error}</div>}
+          <form onSubmit={handle}>
+            <label className="input-label">Email</label>
+            <input type="email" required className="input" style={{marginBottom:'16px'}} placeholder="you@example.com" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/>
+            <label className="input-label">Password</label>
+            <input type="password" required className="input" style={{marginBottom:'24px'}} placeholder="••••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/>
+            <button type="submit" disabled={loading} className="btn-primary" style={{width:'100%',padding:'16px',fontSize:'15px',opacity:loading?0.7:1}}>
+              {loading?'Signing in...':'Sign In'}
             </button>
           </form>
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Don't have an account? <Link to="/register" className="text-[#1a472a] font-semibold hover:underline">Sign up</Link>
+          <p style={{textAlign:'center',fontSize:'13px',color:'var(--text2)',marginTop:'20px'}}>
+            No account? <Link to="/register" style={{color:'var(--primary)',fontWeight:'700',textDecoration:'none'}}>Sign up</Link>
           </p>
         </div>
       </div>

@@ -3,73 +3,52 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
 
 export default function Register() {
-  const [form, setForm] = useState({ name: '', email: '', password: '', role: 'user' })
+  const [form, setForm] = useState({name:'',email:'',password:'',role:'user'})
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
   const { register } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
-    e.preventDefault()
-    setLoading(true)
-    setError('')
+  const handle = async (e) => {
+    e.preventDefault(); setLoading(true); setError('')
     const result = await register(form.name, form.email, form.password, form.role)
-    if (result.success) {
-      navigate('/')
-    } else {
-      setError(result.message || 'Registration failed')
-    }
-    setLoading(false)
+    if (result.success) navigate('/')
+    else { setError(result.message||'Registration failed'); setLoading(false) }
   }
 
   return (
-    <div className="min-h-screen bg-[#faf8f3] flex items-center justify-center px-4 pt-20 pb-10">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-10">
-          <div className="w-14 h-14 bg-[#f4a261] rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">🌱</div>
-          <h1 className="font-black text-4xl mb-2" style={{fontFamily:'Georgia,serif'}}>Join HelpBridge</h1>
-          <p className="text-gray-500">Create your account and start making a difference</p>
-        </div>
-        <div className="bg-white border border-[#e8e2d9] rounded-3xl p-8 shadow-sm">
-          {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">{error}</div>}
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div>
-              <label className="block text-sm font-semibold mb-2">Full Name</label>
-              <input type="text" required placeholder="Your name"
-                className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors"
-                value={form.name} onChange={e => setForm({...form, name: e.target.value})} />
+    <div style={{minHeight:'100vh',background:'var(--bg)',display:'flex',flexDirection:'column'}}>
+      <div style={{background:'linear-gradient(135deg,var(--accent),var(--accent2))',padding:'60px 20px 40px',textAlign:'center',position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:'-40px',right:'-40px',width:'160px',height:'160px',background:'rgba(255,255,255,0.1)',borderRadius:'50%'}}/>
+        <div style={{fontSize:'48px',marginBottom:'16px'}}>🌱</div>
+        <div className="playfair" style={{fontSize:'28px',fontWeight:'900',color:'white'}}>Join HelpBridge</div>
+        <div style={{fontSize:'13px',color:'rgba(255,255,255,0.75)',marginTop:'6px'}}>Make a difference today</div>
+      </div>
+      <div style={{flex:1,padding:'24px 16px'}}>
+        <div className="card" style={{padding:'24px'}}>
+          {error&&<div style={{background:'#fee2e2',border:'1px solid #fca5a5',color:'#dc2626',borderRadius:'12px',padding:'12px 16px',marginBottom:'16px',fontSize:'13px'}}>{error}</div>}
+          <form onSubmit={handle}>
+            <label className="input-label">Full Name</label>
+            <input type="text" required className="input" style={{marginBottom:'16px'}} placeholder="Your name" value={form.name} onChange={e=>setForm({...form,name:e.target.value})}/>
+            <label className="input-label">Email</label>
+            <input type="email" required className="input" style={{marginBottom:'16px'}} placeholder="you@example.com" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/>
+            <label className="input-label">Password</label>
+            <input type="password" required className="input" style={{marginBottom:'16px'}} placeholder="••••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/>
+            <label className="input-label">Join as</label>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'10px',marginBottom:'24px'}}>
+              {[['user','🙋 Member'],['volunteer','💪 Volunteer']].map(([val,label])=>(
+                <button type="button" key={val} onClick={()=>setForm({...form,role:val})}
+                  style={{padding:'14px',borderRadius:'var(--r-sm)',border:'2px solid '+(form.role===val?'var(--primary)':'var(--border)'),background:form.role===val?'rgba(26,71,42,0.06)':'white',color:form.role===val?'var(--primary)':'var(--text2)',fontSize:'13px',fontWeight:'700',cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>
+                  {label}
+                </button>
+              ))}
             </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Email</label>
-              <input type="email" required placeholder="you@example.com"
-                className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors"
-                value={form.email} onChange={e => setForm({...form, email: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Password</label>
-              <input type="password" required placeholder="••••••••"
-                className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors"
-                value={form.password} onChange={e => setForm({...form, password: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">I want to join as</label>
-              <div className="grid grid-cols-2 gap-3">
-                {[['user','🙋 Member'],['volunteer','💪 Volunteer']].map(([val, label]) => (
-                  <button type="button" key={val}
-                    onClick={() => setForm({...form, role: val})}
-                    className={'py-3 rounded-xl border-2 text-sm font-semibold transition-all ' + (form.role === val ? 'border-[#1a472a] bg-[#1a472a]/5 text-[#1a472a]' : 'border-[#e8e2d9] text-gray-500 hover:border-gray-300')}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-3.5 bg-[#f4a261] text-white font-semibold rounded-full hover:bg-[#e76f51] transition-all hover:-translate-y-0.5 disabled:opacity-50">
-              {loading ? 'Creating account...' : 'Create Account'}
+            <button type="submit" disabled={loading} className="btn-accent" style={{width:'100%',padding:'16px',fontSize:'15px',opacity:loading?0.7:1}}>
+              {loading?'Creating...':'Create Account 🚀'}
             </button>
           </form>
-          <p className="text-center text-sm text-gray-500 mt-6">
-            Already have an account? <Link to="/login" className="text-[#1a472a] font-semibold hover:underline">Sign in</Link>
+          <p style={{textAlign:'center',fontSize:'13px',color:'var(--text2)',marginTop:'20px'}}>
+            Have an account? <Link to="/login" style={{color:'var(--primary)',fontWeight:'700',textDecoration:'none'}}>Sign in</Link>
           </p>
         </div>
       </div>

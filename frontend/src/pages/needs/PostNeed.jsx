@@ -3,96 +3,67 @@ import { useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 import { useAuth } from '../../context/AuthContext'
 
-const CATEGORIES = ['Groceries','Repairs','Tutoring','Transport','Moving','Tech Help','Other']
+const CATS = ['Groceries','Repairs','Tutoring','Transport','Moving','Tech Help','Other']
 
 export default function PostNeed() {
-  const [form, setForm] = useState({ title:'', category:'', description:'', urgency:'low', location:'' })
+  const [form, setForm] = useState({title:'',category:'',description:'',urgency:'low',location:''})
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const [submitted, setSubmitted] = useState(false)
+  const [done, setDone] = useState(false)
   const { user } = useAuth()
   const navigate = useNavigate()
 
-  const handleSubmit = async (e) => {
+  const handle = async (e) => {
     e.preventDefault()
     if (!user) return navigate('/login')
-    setLoading(true)
-    setError('')
+    setLoading(true); setError('')
     const result = await api.createNeed(form)
-    if (result._id) {
-      setSubmitted(true)
-      setTimeout(() => navigate('/needs'), 2000)
-    } else {
-      setError(result.message || 'Failed to post need')
-    }
-    setLoading(false)
+    if (result._id) { setDone(true); setTimeout(()=>navigate('/needs'),2000) }
+    else { setError(result.message||'Failed to post'); setLoading(false) }
   }
 
-  if (submitted) return (
-    <div className="min-h-screen bg-[#faf8f3] flex items-center justify-center">
-      <div className="text-center">
-        <div className="text-6xl mb-4">🎉</div>
-        <h2 className="font-black text-3xl mb-2" style={{fontFamily:'Georgia,serif'}}>Need Posted!</h2>
-        <p className="text-gray-500">Volunteers will be notified. Redirecting...</p>
-      </div>
+  if (done) return (
+    <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center',flexDirection:'column',padding:'20px',textAlign:'center'}}>
+      <div style={{fontSize:'64px',marginBottom:'16px'}}>🎉</div>
+      <div className="playfair" style={{fontSize:'28px',fontWeight:'900',marginBottom:'8px'}}>Need Posted!</div>
+      <div style={{color:'var(--text2)'}}>Redirecting to browse...</div>
     </div>
   )
 
   return (
-    <div className="min-h-screen bg-[#faf8f3] pt-24 pb-16">
-      <div className="max-w-2xl mx-auto px-6">
-        <div className="text-center mb-10">
-          <div className="w-14 h-14 bg-[#1a472a] rounded-2xl flex items-center justify-center text-2xl mx-auto mb-4">📝</div>
-          <h1 className="font-black text-4xl mb-2" style={{fontFamily:'Georgia,serif'}}>Post a Need</h1>
-          <p className="text-gray-500">Tell the community what you need help with</p>
-        </div>
-        <div className="bg-white border border-[#e8e2d9] rounded-3xl p-8 shadow-sm">
-          {error && <div className="mb-4 p-3 bg-red-50 border border-red-200 text-red-600 rounded-xl text-sm">{error}</div>}
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-semibold mb-2">Title</label>
-              <input type="text" required placeholder="e.g. Need groceries delivered"
-                className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors"
-                value={form.title} onChange={e => setForm({...form, title: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Category</label>
-              <select required className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] bg-white"
-                value={form.category} onChange={e => setForm({...form, category: e.target.value})}>
-                <option value="">Select a category</option>
-                {CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Description</label>
-              <textarea required rows={4} placeholder="Describe what you need in detail..."
-                className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors resize-none"
-                value={form.description} onChange={e => setForm({...form, description: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-2">Location</label>
-              <input type="text" placeholder="e.g. Sector 4, Block B"
-                className="w-full px-4 py-3 border border-[#e8e2d9] rounded-xl text-sm focus:outline-none focus:border-[#1a472a] transition-colors"
-                value={form.location} onChange={e => setForm({...form, location: e.target.value})} />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold mb-3">Urgency</label>
-              <div className="grid grid-cols-3 gap-3">
-                {[['low','🟢 Flexible'],['med','🟡 Moderate'],['high','🔴 Urgent']].map(([val,label]) => (
-                  <button type="button" key={val} onClick={() => setForm({...form, urgency: val})}
-                    className={'py-3 rounded-xl border-2 text-sm font-semibold transition-all ' + (form.urgency === val ? 'border-[#1a472a] bg-[#1a472a]/5 text-[#1a472a]' : 'border-[#e8e2d9] text-gray-500')}>
-                    {label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <button type="submit" disabled={loading}
-              className="w-full py-4 bg-[#f4a261] text-white font-semibold rounded-full hover:bg-[#e76f51] transition-all hover:-translate-y-0.5 disabled:opacity-50 text-base">
-              {loading ? 'Posting...' : 'Post My Need'}
-            </button>
-          </form>
-        </div>
+    <div className="page">
+      <div style={{background:'linear-gradient(135deg,var(--accent),var(--accent2))',padding:'52px 20px 32px',position:'relative',overflow:'hidden'}}>
+        <div style={{position:'absolute',top:'-30px',right:'-30px',width:'120px',height:'120px',background:'rgba(255,255,255,0.1)',borderRadius:'50%'}}/>
+        <button onClick={()=>navigate(-1)} style={{background:'rgba(255,255,255,0.2)',border:'none',color:'white',padding:'8px 16px',borderRadius:'20px',fontFamily:'Outfit,sans-serif',fontWeight:'600',cursor:'pointer',marginBottom:'16px',fontSize:'13px'}}>← Back</button>
+        <div className="playfair" style={{fontSize:'28px',fontWeight:'900',color:'white'}}>Post a Need</div>
+        <div style={{fontSize:'13px',color:'rgba(255,255,255,0.75)',marginTop:'4px'}}>Tell your community what you need</div>
       </div>
+      <form onSubmit={handle} style={{padding:'20px 16px'}}>
+        {error&&<div style={{background:'#fee2e2',border:'1px solid #fca5a5',color:'#dc2626',borderRadius:'12px',padding:'12px 16px',marginBottom:'16px',fontSize:'13px'}}>{error}</div>}
+        <label className="input-label">Title</label>
+        <input required className="input" style={{marginBottom:'16px'}} placeholder="e.g. Need groceries delivered" value={form.title} onChange={e=>setForm({...form,title:e.target.value})}/>
+        <label className="input-label">Category</label>
+        <select required className="input" style={{marginBottom:'16px'}} value={form.category} onChange={e=>setForm({...form,category:e.target.value})}>
+          <option value="">Select a category</option>
+          {CATS.map(c=><option key={c} value={c}>{c}</option>)}
+        </select>
+        <label className="input-label">Description</label>
+        <textarea required className="input" style={{marginBottom:'16px',height:'100px',resize:'none'}} placeholder="Describe what you need..." value={form.description} onChange={e=>setForm({...form,description:e.target.value})}/>
+        <label className="input-label">Location (optional)</label>
+        <input className="input" style={{marginBottom:'16px'}} placeholder="e.g. Sector 4, Block B" value={form.location} onChange={e=>setForm({...form,location:e.target.value})}/>
+        <label className="input-label">Urgency Level</label>
+        <div style={{display:'grid',gridTemplateColumns:'1fr 1fr 1fr',gap:'8px',marginBottom:'24px'}}>
+          {[['low','🟢 Flexible'],['med','🟡 Moderate'],['high','🔴 Urgent']].map(([val,label])=>(
+            <button type="button" key={val} onClick={()=>setForm({...form,urgency:val})}
+              style={{padding:'12px 8px',borderRadius:'var(--r-sm)',border:'2px solid '+(form.urgency===val?'var(--primary)':'var(--border)'),background:form.urgency===val?'rgba(26,71,42,0.06)':'white',color:form.urgency===val?'var(--primary)':'var(--text2)',fontSize:'12px',fontWeight:'700',cursor:'pointer',fontFamily:'Outfit,sans-serif'}}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <button type="submit" disabled={loading} className="btn-accent" style={{width:'100%',padding:'16px',fontSize:'16px',opacity:loading?0.7:1}}>
+          {loading?'Posting...':'Post My Need 🚀'}
+        </button>
+      </form>
     </div>
   )
 }
