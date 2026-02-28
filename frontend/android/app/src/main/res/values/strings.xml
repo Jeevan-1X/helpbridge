@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">HelpBridge</string>
+    <string name="title_activity_main">HelpBridge</string>
+    <string name="package_name">com.helpbridge.app</string>
+    <string name="custom_url_scheme">com.helpbridge.app</string>
+</resources>
