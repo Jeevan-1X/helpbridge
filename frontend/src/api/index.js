@@ -1,5 +1,4 @@
 const BASE_URL = 'https://helpbridge-b571.onrender.com/api'
-
 const getHeaders = () => {
   const token = localStorage.getItem('token')
   return {
@@ -7,7 +6,6 @@ const getHeaders = () => {
     ...(token && { Authorization: 'Bearer ' + token })
   }
 }
-
 export const api = {
   register: async (data) => {
     const res = await fetch(BASE_URL + '/auth/register', { method: 'POST', headers: getHeaders(), body: JSON.stringify(data) })
@@ -40,6 +38,14 @@ export const api = {
   },
   fulfillNeed: async (id) => {
     const res = await fetch(BASE_URL + '/needs/' + id + '/fulfill', { method: 'PUT', headers: getHeaders() })
+    return res.json()
+  },
+  getMessages: async (roomId) => {
+    const res = await fetch(BASE_URL + '/chat/' + roomId, { headers: getHeaders() })
+    return res.json()
+  },
+  sendMessage: async (roomId, text) => {
+    const res = await fetch(BASE_URL + '/chat/' + roomId, { method: 'POST', headers: getHeaders(), body: JSON.stringify({ text }) })
     return res.json()
   }
 }
