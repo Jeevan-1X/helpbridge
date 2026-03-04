@@ -25,7 +25,7 @@ export default function Browse({ onOpenChat }) {
       await api.acceptNeed(n._id)
       load()
       const updated = { ...n, status:'Accepted', acceptedBy:{_id:user._id,name:user.name} }
-      onOpenChat(updated)
+      const fresh = await api.getNeed(n._id); onOpenChat(fresh)
     } catch(e) { console.error(e) }
     setHelpLoading(null)
   }
