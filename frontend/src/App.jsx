@@ -1,15 +1,21 @@
-import { BrowserRouter, Routes, Route } from 'react-router-dom'
-import { AuthProvider } from './context/AuthContext'
-import Layout from './components/layout/Layout'
-import Landing from './pages/Landing'
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { AuthProvider, useAuth } from './context/AuthContext'
 import Login from './pages/auth/Login'
 import Register from './pages/auth/Register'
-import BrowseNeeds from './pages/needs/BrowseNeeds'
-import PostNeed from './pages/needs/PostNeed'
-import NeedDetail from './pages/needs/NeedDetail'
-import Dashboard from './pages/admin/Dashboard'
-import Profile from './pages/Profile'
-import './index.css'
+import MainApp from './pages/MainApp'
+
+function PrivateRoute({ children }) {
+  const { user, loading } = useAuth()
+  if (loading) return (
+    <div style={{minHeight:'100vh',background:'#080810',display:'flex',alignItems:'center',justifyContent:'center'}}>
+      <div style={{textAlign:'center'}}>
+        <div style={{fontSize:40,marginBottom:12,animation:'spin 1s linear infinite'}}>🤝</div>
+        <style>{`@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+      </div>
+    </div>
+  )
+  return user ? children : <Navigate to="/login" replace />
+}
 
 export default function App() {
   return (
@@ -18,18 +24,7 @@ export default function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/*" element={
-            <Layout>
-              <Routes>
-                <Route path="/" element={<Landing />} />
-                <Route path="/needs" element={<BrowseNeeds />} />
-                <Route path="/needs/post" element={<PostNeed />} />
-                <Route path="/needs/:id" element={<NeedDetail />} />
-                <Route path="/admin" element={<Dashboard />} />
-                <Route path="/profile" element={<Profile />} />
-              </Routes>
-            </Layout>
-          } />
+          <Route path="/*" element={<PrivateRoute><MainApp /></PrivateRoute>} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

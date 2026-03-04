@@ -17,27 +17,45 @@ export default function Login() {
   }
 
   return (
-    <div style={{minHeight:'100vh',background:'var(--bg)',display:'flex',flexDirection:'column'}}>
-      <div style={{background:'var(--primary)',padding:'60px 20px 40px',textAlign:'center',position:'relative',overflow:'hidden'}}>
-        <div style={{position:'absolute',top:'-40px',right:'-40px',width:'160px',height:'160px',background:'rgba(255,255,255,0.05)',borderRadius:'50%'}}/>
-        <div style={{fontSize:'48px',marginBottom:'16px'}}>🤝</div>
-        <div className="playfair" style={{fontSize:'28px',fontWeight:'900',color:'white'}}>Welcome Back</div>
-        <div style={{fontSize:'13px',color:'rgba(255,255,255,0.6)',marginTop:'6px'}}>Sign in to your account</div>
-      </div>
-      <div style={{flex:1,padding:'24px 16px'}}>
-        <div className="card" style={{padding:'24px'}}>
-          {error&&<div style={{background:'#fee2e2',border:'1px solid #fca5a5',color:'#dc2626',borderRadius:'12px',padding:'12px 16px',marginBottom:'16px',fontSize:'13px'}}>{error}</div>}
+    <div style={{minHeight:'100vh',background:'#080810',display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',padding:'20px',position:'relative',overflow:'hidden'}}>
+      {/* Ambient glow */}
+      <div style={{position:'absolute',top:-100,left:-100,width:400,height:400,borderRadius:'50%',background:'rgba(124,92,252,0.08)',filter:'blur(80px)',pointerEvents:'none'}}/>
+      <div style={{position:'absolute',bottom:-100,right:-100,width:300,height:300,borderRadius:'50%',background:'rgba(79,172,254,0.06)',filter:'blur(60px)',pointerEvents:'none'}}/>
+
+      <div className="fade" style={{width:'100%',maxWidth:380,position:'relative',zIndex:1}}>
+        <div style={{textAlign:'center',marginBottom:36}}>
+          <div style={{
+            width:64,height:64,borderRadius:20,margin:'0 auto 16px',
+            background:'linear-gradient(135deg,#7c5cfc,#4facfe)',
+            display:'flex',alignItems:'center',justifyContent:'center',
+            fontSize:26,boxShadow:'0 8px 32px rgba(124,92,252,0.4)',
+            animation:'float 3s ease-in-out infinite'
+          }}>🤝</div>
+          <h1 style={{fontSize:28,fontWeight:800,fontFamily:'Syne,sans-serif',letterSpacing:'-0.02em',marginBottom:6}}>HelpBridge</h1>
+          <p style={{fontSize:13,color:'#7878a0'}}>Connecting communities through help</p>
+        </div>
+
+        <div style={{background:'rgba(255,255,255,0.03)',border:'1px solid rgba(255,255,255,0.07)',borderRadius:24,padding:28}}>
+          {error && (
+            <div style={{background:'rgba(239,68,68,0.08)',border:'1px solid rgba(239,68,68,0.2)',borderRadius:12,padding:'11px 14px',marginBottom:16,fontSize:12,color:'#ef4444'}}>
+              {error}
+            </div>
+          )}
           <form onSubmit={handle}>
-            <label className="input-label">Email</label>
-            <input type="email" required className="input" style={{marginBottom:'16px'}} placeholder="you@example.com" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/>
-            <label className="input-label">Password</label>
-            <input type="password" required className="input" style={{marginBottom:'24px'}} placeholder="••••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/>
-            <button type="submit" disabled={loading} className="btn-primary" style={{width:'100%',padding:'16px',fontSize:'15px',opacity:loading?0.7:1}}>
-              {loading?'Signing in...':'Sign In'}
+            <div style={{marginBottom:14}}>
+              <label className="input-label">Email</label>
+              <input type="email" required className="input" placeholder="you@example.com" value={form.email} onChange={e=>setForm({...form,email:e.target.value})}/>
+            </div>
+            <div style={{marginBottom:22}}>
+              <label className="input-label">Password</label>
+              <input type="password" required className="input" placeholder="••••••••" value={form.password} onChange={e=>setForm({...form,password:e.target.value})}/>
+            </div>
+            <button type="submit" disabled={loading} className="btn-primary" style={{width:'100%',padding:14,fontSize:14}}>
+              {loading?'Signing in…':'Sign In'}
             </button>
           </form>
-          <p style={{textAlign:'center',fontSize:'13px',color:'var(--text2)',marginTop:'20px'}}>
-            No account? <Link to="/register" style={{color:'var(--primary)',fontWeight:'700',textDecoration:'none'}}>Sign up</Link>
+          <p style={{textAlign:'center',fontSize:12,color:'#7878a0',marginTop:18}}>
+            No account? <Link to="/register" style={{color:'#a78bfa',fontWeight:700}}>Create one</Link>
           </p>
         </div>
       </div>

@@ -9,4 +9,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({ registerType: 'autoUpdate' })
   ],
+  server: {
+    allowedHosts: ['unmourning-charita-rightwardly.ngrok-free.dev']
+  }
 })

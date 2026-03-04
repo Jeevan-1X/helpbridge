@@ -2,63 +2,75 @@ import { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { api } from '../../api'
 import { useAuth } from '../../context/AuthContext'
-
-const urgencyClass = {high:'badge-high',med:'badge-med',low:'badge-low'}
-const urgencyLabel = {high:'Urgent',med:'Moderate',low:'Flexible'}
-const initials = (name) => name?.split(' ').map(n=>n[0]).join('').toUpperCase()||'?'
-
+const catIcon = c => ({Moving:'📦',Education:'📚',Transport:'🚗',Home:'🏡',Pets:'🐾',Tech:'💻',Food:'🍱',Health:'❤️'}[c]||'📋')
 export default function NeedDetail() {
   const { id } = useParams()
-  const navigate = useNavigate()
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [need, setNeed] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [accepting, setAccepting] = useState(false)
-
-  useEffect(()=>{ api.getNeed(id).then(data=>{setNeed(data);setLoading(false)}) },[id])
-
-  const handleAccept = async () => {
-    if (!user) return navigate('/login')
-    setAccepting(true)
-    const result = await api.acceptNeed(id)
-    if (result._id) setNeed(result)
-    setAccepting(false)
+  const [helping, setHelping] = useState(false)
+  const [msg, setMsg] = useState('')
+  useEffect(() => {
+    api.getNeed(id).then(d => { setNeed(d); setLoading(false) })
+  }, [id])
+  const handleHelp = async () => {
+    setHelping(true)
+    await api.acceptNeed(id)
+    setMsg('You offered to help! The poster will be notified. 🎉')
+    api.getNeed(id).then(setNeed)
+    setHelping(false)
   }
-
-  if (loading) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:'var(--text3)'}}><div style={{fontSize:'40px',marginBottom:'12px'}}>⏳</div><div>Loading...</div></div></div>
-  if (!need||need.message) return <div style={{minHeight:'100vh',display:'flex',alignItems:'center',justifyContent:'center'}}><div style={{textAlign:'center',color:'var(--text3)'}}><div style={{fontSize:'40px',marginBottom:'12px'}}>😕</div><div>Need not found</div></div></div>
-
+  const handleFulfill = async () => {
+    await api.fulfillNeed(id)
+    setMsg('Need marked as fulfilled! 🎉')
+    api.getNeed(id).then(setNeed)
+  }
+  if (loading) return (
+    <div style={{textAlign:'center',padding:'80px 20px',color:'#475569'}}>
+      <div style={{fontSize:32,animation:'pulse 1.5s infinite',marginBottom:12}}>🤝</div>
+      <p>Loading...</p>
+    </div>
+  )
+  if (!need) return <div style={{textAlign:'center',padding:'80px 20px',color:'#475569'}}>Need not found</div>
+  const isOwner = need.postedBy?._id === user?._id || need.postedBy === user?._id
   return (
-    <div className="page">
-      <div style={{background:'var(--primary)',padding:'52px 20px 32px',position:'relative',overflow:'hidden'}}>
-        <div style={{position:'absolute',top:'-40px',right:'-40px',width:'160px',height:'160px',background:'rgba(255,255,255,0.05)',borderRadius:'50%'}}/>
-        <button onClick={()=>navigate(-1)} style={{background:'rgba(255,255,255,0.15)',border:'none',color:'white',padding:'8px 16px',borderRadius:'20px',fontFamily:'Outfit,sans-serif',fontWeight:'600',cursor:'pointer',marginBottom:'16px',fontSize:'13px'}}>← Back</button>
-        <div style={{display:'flex',alignItems:'center',gap:'10px',marginBottom:'12px'}}>
-          <span style={{fontSize:'11px',fontWeight:'700',color:'rgba(255,255,255,0.7)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{need.category}</span>
-          <span className={'badge '+(urgencyClass[need.urgency]||'badge-low')} style={{background:'rgba(255,255,255,0.2)',color:'white'}}>{urgencyLabel[need.urgency]||need.urgency}</span>
-        </div>
-        <div className="playfair" style={{fontSize:'24px',fontWeight:'900',color:'white',lineHeight:1.2}}>{need.title}</div>
-      </div>
-      <div style={{padding:'20px 16px'}}>
-        <div className="card" style={{padding:'20px',marginBottom:'16px'}}>
-          <div style={{fontSize:'14px',color:'var(--text2)',lineHeight:1.7,marginBottom:need.location?'16px':'0'}}>{need.description}</div>
-          {need.location&&<div style={{fontSize:'13px',color:'var(--text3)',paddingTop:'16px',borderTop:'1px solid var(--border)'}}>📍 {need.location}</div>}
-        </div>
-        <div className="card" style={{padding:'16px',marginBottom:'20px',display:'flex',alignItems:'center',gap:'14px'}}>
-          <div className="avatar" style={{width:'48px',height:'48px',fontSize:'16px',borderRadius:'16px'}}>{initials(need.postedBy?.name)}</div>
-          <div>
-            <div style={{fontWeight:'700',fontSize:'15px'}}>{need.postedBy?.name||'Anonymous'}</div>
-            <div style={{fontSize:'12px',color:'var(--text3)',marginTop:'2px'}}>Posted {new Date(need.createdAt).toLocaleDateString()}</div>
+    <div style={{maxWidth:680,margin:'0 auto',padding:'36px 20px'}}>
+      <button className="btn-ghost" style={{marginBottom:24,fontSize:13}} onClick={()=>navigate(-1)}>← Back</button>
+      <div className="card fade" style={{padding:32}}>
+        <div style={{display:'flex',justifyContent:'space-between',flexWrap:'wrap',gap:12,marginBottom:20}}>
+          <div style={{display:'flex',gap:8}}>
+            <span className={`badge badge-${need.status==='fulfilled'?'fulfilled':need.urgency==='high'?'urgent':'open'}`}>
+              {need.status==='fulfilled'?'✅ Fulfilled':need.urgency==='high'?'🔴 Urgent':'🟢 Open'}
+            </span>
+            <span style={{fontSize:13,color:'#475569'}}>{catIcon(need.category)} {need.category}</span>
           </div>
-          <span className={'badge '+(need.status==='Open'?'badge-open':need.status==='Accepted'?'badge-accepted':'badge-fulfilled')} style={{marginLeft:'auto'}}>{need.status}</span>
+          <span style={{fontSize:12,color:'#475569'}}>{new Date(need.createdAt).toLocaleDateString()}</span>
         </div>
-        {need.status==='Open' ? (
-          <button onClick={handleAccept} disabled={accepting} className="btn-primary" style={{width:'100%',padding:'18px',fontSize:'16px',opacity:accepting?0.7:1}}>
-            {accepting?'Accepting...':'💪 I Will Help With This'}
-          </button>
-        ) : (
-          <div style={{background:'var(--bg)',borderRadius:'20px',padding:'18px',textAlign:'center',fontSize:'15px',fontWeight:'600',color:'var(--text3)'}}>
-            {need.status==='Accepted'?'✅ Someone is already helping':'🎉 This need has been fulfilled'}
+        <h1 style={{fontSize:24,fontWeight:800,letterSpacing:'-0.02em',lineHeight:1.2,marginBottom:16}}>{need.title}</h1>
+        <p style={{fontSize:15,color:'#94A3B8',lineHeight:1.75,marginBottom:28}}>{need.description}</p>
+        <div style={{display:'flex',alignItems:'center',gap:14,padding:'18px 0',borderTop:'1px solid #1E293B',borderBottom:'1px solid #1E293B',marginBottom:24}}>
+          <div style={{width:44,height:44,borderRadius:'50%',background:'linear-gradient(135deg,#4F46E5,#14B8A6)',display:'flex',alignItems:'center',justifyContent:'center',fontWeight:800,fontSize:16,color:'white'}}>
+            {need.postedBy?.name?.slice(0,2).toUpperCase()||'??'}
+          </div>
+          <div>
+            <div style={{fontWeight:700,fontSize:15}}>{need.postedBy?.name||'Anonymous'}</div>
+            <div style={{fontSize:13,color:'#64748B'}}>Posted {new Date(need.createdAt).toLocaleDateString()}</div>
+          </div>
+        </div>
+        {msg && <div style={{background:'rgba(16,185,129,0.1)',border:'1px solid rgba(16,185,129,0.3)',color:'#34D399',borderRadius:10,padding:'12px 16px',marginBottom:20,fontSize:13,fontWeight:600}}>{msg}</div>}
+        {need.status !== 'fulfilled' && (
+          <div style={{display:'flex',gap:12,flexWrap:'wrap'}}>
+            {!isOwner && (
+              <button className="btn-accent" style={{padding:'12px 24px',fontSize:15}} onClick={handleHelp} disabled={helping}>
+                {helping ? 'Sending...' : '🤝 Offer to Help'}
+              </button>
+            )}
+            {isOwner && need.status === 'accepted' && (
+              <button className="btn-primary" style={{padding:'12px 24px',fontSize:15}} onClick={handleFulfill}>
+                ✅ Mark as Fulfilled
+              </button>
+            )}
           </div>
         )}
       </div>

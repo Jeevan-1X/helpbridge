@@ -1,73 +1,71 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { api } from '../../api'
-
-const CATS = ['All','Groceries','Repairs','Tutoring','Transport','Moving','Tech Help']
-const catIcon = {Groceries:'🛒',Repairs:'🔧',Tutoring:'📚',Transport:'🚗',Moving:'📦','Tech Help':'💻',Other:'📌'}
-const urgencyClass = {high:'badge-high',med:'badge-med',low:'badge-low'}
-const urgencyLabel = {high:'Urgent',med:'Moderate',low:'Flexible'}
-const initials = (name) => name?.split(' ').map(n=>n[0]).join('').toUpperCase() || '?'
-
+const catIcon = c => ({Moving:'📦',Education:'📚',Transport:'🚗',Home:'🏡',Pets:'🐾',Tech:'💻',Food:'🍱',Health:'❤️'}[c]||'📋')
 export default function BrowseNeeds() {
   const [needs, setNeeds] = useState([])
   const [loading, setLoading] = useState(true)
+  const [q, setQ] = useState('')
   const [cat, setCat] = useState('All')
-  const [search, setSearch] = useState('')
-
   useEffect(() => {
-    api.getNeeds({}).then(data => { setNeeds(Array.isArray(data)?data:[]); setLoading(false) })
+    fetch("https://helpbridge-b571.onrender.com/api/needs").then(r=>r.json()).then(d => { console.log("needs:",d); setNeeds(Array.isArray(d)?d:[]); setLoading(false) }).catch(e=>{ console.error(e); setLoading(false) })
   }, [])
-
   const filtered = needs.filter(n =>
-    (cat==='All'||n.category===cat) &&
-    ((n.title||'').toLowerCase().includes(search.toLowerCase())||(n.description||'').toLowerCase().includes(search.toLowerCase()))
+    (n.title?.toLowerCase().includes(q.toLowerCase()) || n.description?.toLowerCase().includes(q.toLowerCase())) &&
+    (cat === 'All' || n.category === cat)
   )
-
   return (
-    <div className="page">
-      <div style={{background:'var(--bg2)',padding:'52px 16px 0',borderBottom:'1px solid var(--border)',position:'sticky',top:0,zIndex:50}}>
-        <div className="playfair" style={{fontSize:'26px',fontWeight:'900',marginBottom:'14px'}}>Community Needs</div>
-        <div style={{display:'flex',alignItems:'center',gap:'10px',background:'var(--bg)',borderRadius:'16px',padding:'12px 16px',marginBottom:'12px',border:'1px solid var(--border)'}}>
-          <span>🔍</span>
-          <input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search needs..."
-            style={{background:'none',border:'none',outline:'none',fontFamily:'Outfit,sans-serif',fontSize:'14px',color:'var(--text)',flex:1}}/>
+    <div style={{maxWidth:1000,margin:'0 auto',padding:'36px 20px'}}>
+      <div className="fade" style={{marginBottom:28}}>
+        <h1 style={{fontSize:28,fontWeight:800,letterSpacing:'-0.02em',marginBottom:6}}>Browse Needs</h1>
+        <p style={{color:'#64748B',fontSize:15}}>Find ways to help your community</p>
+      </div>
+      <div className="fade d1" style={{display:'flex',gap:12,marginBottom:24,flexWrap:'wrap'}}>
+        <div style={{flex:1,minWidth:200,position:'relative'}}>
+          <span style={{position:'absolute',left:13,top:'50%',transform:'translateY(-50%)',fontSize:16}}>🔍</span>
+          <input className="input" style={{paddingLeft:38}} placeholder="Search needs..." value={q} onChange={e=>setQ(e.target.value)}/>
         </div>
-        <div style={{display:'flex',gap:'8px',overflowX:'auto',paddingBottom:'14px',scrollbarWidth:'none'}}>
-          {CATS.map(c=>(
-            <button key={c} onClick={()=>setCat(c)}
-              style={{padding:'7px 16px',borderRadius:'20px',fontSize:'12px',fontWeight:'600',whiteSpace:'nowrap',cursor:'pointer',border:'none',
-                background:cat===c?'var(--primary)':'var(--bg)',color:cat===c?'white':'var(--text2)'}}>
-              {c}
-            </button>
+        <select className="input" style={{width:160}} value={cat} onChange={e=>setCat(e.target.value)}>
+          {['All','Moving','Education','Transport','Home','Pets','Tech','Food','Health'].map(c=><option key={c}>{c}</option>)}
+        </select>
+      </div>
+      {loading ? (
+        <div style={{textAlign:'center',padding:'60px 0',color:'#475569'}}>
+          <div style={{fontSize:32,animation:'pulse 1.5s infinite',marginBottom:12}}>🤝</div>
+          <p>Loading needs...</p>
+        </div>
+      ) : filtered.length === 0 ? (
+        <div style={{textAlign:'center',padding:'60px 0',color:'#475569'}}>
+          <div style={{fontSize:32,marginBottom:12}}>📭</div>
+          <p>No needs found</p>
+          <Link to="/post" className="btn-primary" style={{marginTop:16,display:'inline-flex'}}>Post the first need</Link>
+        </div>
+      ) : (
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(290px,1fr))',gap:16}}>
+          {filtered.map((n,i)=>(
+            <div key={n._id} className="card fade" style={{padding:22,animationDelay:`${i*0.05}s`}}>
+              <div style={{display:'flex',justifyContent:'space-between',marginBottom:12}}>
+                <span className={`badge badge-${n.status==='fulfilled'?'fulfilled':n.urgency==='high'?'urgent':n.urgency==='med'?'accepted':'open'}`}>
+                  <span style={{width:5,height:5,borderRadius:'50%',background:'currentColor',display:'inline-block'}}/>
+                  {n.status==='fulfilled'?'Fulfilled':n.urgency==='high'?'Urgent':n.urgency==='med'?'Medium':'Low'}
+                </span>
+                <span style={{fontSize:12,color:'#475569'}}>{catIcon(n.category)} {n.category}</span>
+              </div>
+              <h3 style={{fontSize:15,fontWeight:700,marginBottom:8,lineHeight:1.3}}>{n.title}</h3>
+              <p style={{fontSize:13,color:'#64748B',lineHeight:1.6,marginBottom:16}}>{n.description?.slice(0,90)}...</p>
+              <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',paddingTop:12,borderTop:'1px solid #1E293B'}}>
+                <div style={{display:'flex',alignItems:'center',gap:8}}>
+                  <div style={{width:28,height:28,borderRadius:'50%',background:'linear-gradient(135deg,#4F46E5,#14B8A6)',display:'flex',alignItems:'center',justifyContent:'center',fontSize:11,fontWeight:700,color:'white'}}>
+                    {n.postedBy?.name?.slice(0,2).toUpperCase()||'??'}
+                  </div>
+                  <span style={{fontSize:12,color:'#64748B'}}>{n.postedBy?.name||'Anonymous'}</span>
+                </div>
+                <Link to={`/needs/${n._id}`} className="btn-primary" style={{padding:'6px 14px',fontSize:12}}>View →</Link>
+              </div>
+            </div>
           ))}
         </div>
-      </div>
-      <div style={{padding:'16px'}}>
-        {loading ? (
-          <div style={{textAlign:'center',padding:'60px 0',color:'var(--text3)'}}><div style={{fontSize:'40px',marginBottom:'12px'}}>⏳</div><div style={{fontWeight:'600'}}>Loading needs...</div></div>
-        ) : filtered.length===0 ? (
-          <div style={{textAlign:'center',padding:'60px 0',color:'var(--text3)'}}><div style={{fontSize:'40px',marginBottom:'12px'}}>🔍</div><div style={{fontWeight:'600'}}>No needs found</div></div>
-        ) : filtered.map(need=>(
-          <div key={need._id} className="card" style={{padding:'16px',marginBottom:'12px'}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
-              <span style={{fontSize:'11px',fontWeight:'700',color:'var(--primary)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{catIcon[need.category]||'📌'} {need.category}</span>
-              <span className={'badge '+(urgencyClass[need.urgency]||'badge-low')}>{urgencyLabel[need.urgency]||need.urgency}</span>
-            </div>
-            <div className="playfair" style={{fontSize:'16px',fontWeight:'700',marginBottom:'6px',lineHeight:1.3}}>{need.title}</div>
-            <div style={{fontSize:'12px',color:'var(--text2)',lineHeight:1.6,marginBottom:'14px'}}>{(need.description||'').slice(0,90)}...</div>
-            {need.location&&<div style={{fontSize:'11px',color:'var(--text3)',marginBottom:'10px'}}>📍 {need.location}</div>}
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                <div className="avatar" style={{width:'28px',height:'28px',fontSize:'10px'}}>{initials(need.postedBy?.name)}</div>
-                <span style={{fontSize:'12px',fontWeight:'600',color:'var(--text2)'}}>{need.postedBy?.name||'Anonymous'}</span>
-              </div>
-              <Link to={'/needs/'+need._id} style={{background:need.status==='Open'?'var(--primary)':'var(--bg)',color:need.status==='Open'?'white':'var(--text3)',fontSize:'11px',fontWeight:'700',padding:'8px 16px',borderRadius:'20px',textDecoration:'none'}}>
-                {need.status==='Open'?'Help Now':need.status}
-              </Link>
-            </div>
-          </div>
-        ))}
-      </div>
+      )}
     </div>
   )
 }

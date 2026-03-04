@@ -1,100 +1,75 @@
-import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { api } from '../api'
-
-const initials = (name) => name?.split(' ').map(n=>n[0]).join('').toUpperCase() || '?'
-const urgencyClass = { high:'badge-high', med:'badge-med', low:'badge-low' }
-const urgencyLabel = { high:'Urgent', med:'Moderate', low:'Flexible' }
-
 export default function Landing() {
   const { user } = useAuth()
-  const [needs, setNeeds] = useState([])
-  const [stats, setStats] = useState({ total:0, open:0, fulfilled:0 })
-
-  useEffect(() => {
-    api.getNeeds({}).then(data => {
-      if (Array.isArray(data)) {
-        setNeeds(data.slice(0,3))
-        setStats({ total:data.length, open:data.filter(n=>n.status==='Open').length, fulfilled:data.filter(n=>n.status==='Fulfilled').length })
-      }
-    })
-  }, [])
-
   return (
-    <div className="page">
-      <div style={{background:'var(--primary)',padding:'52px 20px 36px',position:'relative',overflow:'hidden'}}>
-        <div style={{position:'absolute',top:'-40px',right:'-40px',width:'160px',height:'160px',background:'rgba(255,255,255,0.05)',borderRadius:'50%'}}/>
-        <div style={{position:'absolute',bottom:'-30px',left:'-20px',width:'120px',height:'120px',background:'rgba(244,162,97,0.12)',borderRadius:'50%'}}/>
-        <div style={{fontSize:'13px',color:'rgba(255,255,255,0.65)',marginBottom:'4px',fontWeight:'500'}}>
-          {user ? 'Good day, ' + user.name.split(' ')[0] + ' 👋' : 'Welcome to'}
-        </div>
-        <div className="playfair" style={{fontSize:'30px',fontWeight:'900',color:'white',lineHeight:1.1}}>
-          {user ? 'Your Community' : 'HelpBridge 🤝'}
-        </div>
-        <div style={{fontSize:'13px',color:'rgba(255,255,255,0.55)',marginTop:'6px'}}>
-          {user ? stats.open + ' open needs in your area' : 'Connect · Help · Thrive'}
-        </div>
-        {!user && (
-          <div style={{display:'flex',gap:'10px',marginTop:'20px'}}>
-            <Link to="/register" style={{padding:'12px 24px',background:'var(--accent)',color:'white',borderRadius:'20px',fontWeight:'700',fontSize:'14px',textDecoration:'none'}}>Join Now</Link>
-            <Link to="/login" style={{padding:'12px 24px',background:'rgba(255,255,255,0.15)',color:'white',borderRadius:'20px',fontWeight:'700',fontSize:'14px',textDecoration:'none'}}>Sign In</Link>
+    <div>
+      <section style={{padding:'80px 20px 90px',textAlign:'center',background:'radial-gradient(ellipse at top,#1E1B4B 0%,#0F172A 60%)'}}>
+        <div style={{maxWidth:680,margin:'0 auto'}}>
+          <div className="fade" style={{display:'inline-flex',alignItems:'center',gap:8,background:'#1E293B',border:'1px solid #334155',borderRadius:999,padding:'6px 16px',marginBottom:28,fontSize:13,color:'#94A3B8',fontWeight:500}}>
+            <span style={{width:8,height:8,borderRadius:'50%',background:'#14B8A6',display:'inline-block'}}/>
+            Community-powered mutual aid
           </div>
-        )}
-      </div>
-
-      <div style={{display:'flex',gap:'12px',padding:'0 16px',marginTop:'-20px',position:'relative',zIndex:2}} className="fade-up">
-        {[{num:stats.open,label:'Open Needs'},{num:stats.total,label:'Total Posted'},{num:stats.fulfilled,label:'Fulfilled'}].map(s => (
-          <div key={s.label} className="card" style={{flex:1,padding:'16px 12px',textAlign:'center'}}>
-            <div className="playfair" style={{fontSize:'26px',fontWeight:'900',color:'var(--primary)'}}>{s.num}</div>
-            <div style={{fontSize:'10px',fontWeight:'600',color:'var(--text3)',textTransform:'uppercase',letterSpacing:'0.06em',marginTop:'2px'}}>{s.label}</div>
+          <h1 className="fade d1" style={{fontSize:'clamp(32px,5vw,52px)',fontWeight:800,lineHeight:1.1,letterSpacing:'-0.03em',marginBottom:20}}>
+            Help your neighbors,{' '}
+            <span style={{background:'linear-gradient(135deg,#4F46E5,#14B8A6)',WebkitBackgroundClip:'text',WebkitTextFillColor:'transparent'}}>
+              build your community
+            </span>
+          </h1>
+          <p className="fade d2" style={{fontSize:17,color:'#94A3B8',lineHeight:1.7,maxWidth:480,margin:'0 auto 36px'}}>
+            Post what you need, offer what you can. HelpBridge connects people who need help with those who can give it.
+          </p>
+          <div className="fade d3" style={{display:'flex',gap:12,justifyContent:'center',flexWrap:'wrap'}}>
+            {user ? (
+              <>
+                <Link to="/browse" className="btn-primary" style={{padding:'13px 28px',fontSize:15}}>Browse Needs →</Link>
+                <Link to="/post" className="btn-ghost" style={{padding:'13px 28px',fontSize:15}}>Post a Need</Link>
+              </>
+            ) : (
+              <>
+                <Link to="/register" className="btn-primary" style={{padding:'13px 28px',fontSize:15}}>Get Started Free →</Link>
+                <Link to="/login" className="btn-ghost" style={{padding:'13px 28px',fontSize:15}}>Sign In</Link>
+              </>
+            )}
           </div>
-        ))}
-      </div>
-
-      <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'12px',padding:'20px 16px 0'}} className="fade-up-2">
-        <Link to="/needs/post" style={{background:'var(--primary)',borderRadius:'var(--r-md)',padding:'20px 16px',textDecoration:'none',position:'relative',overflow:'hidden'}}>
-          <div style={{fontSize:'28px',marginBottom:'10px'}}>📝</div>
-          <div className="playfair" style={{fontSize:'16px',fontWeight:'700',color:'white'}}>Post a Need</div>
-          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.6)',marginTop:'3px'}}>Ask for help</div>
-        </Link>
-        <Link to="/needs" style={{background:'linear-gradient(135deg,var(--accent),var(--accent2))',borderRadius:'var(--r-md)',padding:'20px 16px',textDecoration:'none',position:'relative'}}>
-          <div style={{fontSize:'28px',marginBottom:'10px'}}>💪</div>
-          <div className="playfair" style={{fontSize:'16px',fontWeight:'700',color:'white'}}>Volunteer</div>
-          <div style={{fontSize:'11px',color:'rgba(255,255,255,0.6)',marginTop:'3px'}}>Give help</div>
-        </Link>
-      </div>
-
-      <div style={{padding:'24px 16px 0'}}>
-        <div className="section-header">
-          <div className="section-title">Recent Needs</div>
-          <Link to="/needs" className="see-all" style={{textDecoration:'none'}}>See all →</Link>
-        </div>
-        {needs.length === 0 ? (
-          <div className="card" style={{padding:'40px',textAlign:'center',color:'var(--text3)'}}>
-            <div style={{fontSize:'40px',marginBottom:'10px'}}>🌱</div>
-            <div style={{fontWeight:'600'}}>No needs posted yet</div>
-          </div>
-        ) : needs.map(need => (
-          <div key={need._id} className="card" style={{padding:'16px',marginBottom:'12px'}}>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:'10px'}}>
-              <span style={{fontSize:'11px',fontWeight:'700',color:'var(--primary)',textTransform:'uppercase',letterSpacing:'0.08em'}}>{need.category}</span>
-              <span className={'badge ' + (urgencyClass[need.urgency] || 'badge-low')}>{urgencyLabel[need.urgency] || need.urgency}</span>
-            </div>
-            <div className="playfair" style={{fontSize:'16px',fontWeight:'700',marginBottom:'6px',lineHeight:1.3}}>{need.title}</div>
-            <div style={{fontSize:'12px',color:'var(--text2)',lineHeight:1.6,marginBottom:'14px'}}>{(need.description||'').slice(0,80)}...</div>
-            <div style={{display:'flex',alignItems:'center',justifyContent:'space-between'}}>
-              <div style={{display:'flex',alignItems:'center',gap:'8px'}}>
-                <div className="avatar" style={{width:'28px',height:'28px',fontSize:'10px'}}>{initials(need.postedBy?.name)}</div>
-                <span style={{fontSize:'12px',fontWeight:'600',color:'var(--text2)'}}>{need.postedBy?.name||'Anonymous'}</span>
+          <div className="fade d4" style={{display:'flex',justifyContent:'center',gap:40,marginTop:52,paddingTop:44,borderTop:'1px solid #1E293B'}}>
+            {[['2,400+','Needs Posted'],['1,800+','People Helped'],['98%','Satisfaction']].map(([v,l])=>(
+              <div key={l} style={{textAlign:'center'}}>
+                <div style={{fontSize:26,fontWeight:800,color:'white',letterSpacing:'-0.02em'}}>{v}</div>
+                <div style={{fontSize:13,color:'#64748B',marginTop:2}}>{l}</div>
               </div>
-              <Link to={'/needs/'+need._id} style={{background:'var(--primary)',color:'white',fontSize:'11px',fontWeight:'700',padding:'8px 16px',borderRadius:'20px',textDecoration:'none'}}>
-                {need.status==='Open'?'Help Now':need.status}
-              </Link>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+        </div>
+      </section>
+      <section style={{padding:'72px 20px',maxWidth:1000,margin:'0 auto'}}>
+        <div style={{textAlign:'center',marginBottom:48}}>
+          <p style={{fontSize:12,fontWeight:700,letterSpacing:'0.08em',textTransform:'uppercase',color:'#14B8A6',marginBottom:10}}>How It Works</p>
+          <h2 style={{fontSize:32,fontWeight:800,letterSpacing:'-0.02em'}}>Simple. Human. Powerful.</h2>
+        </div>
+        <div style={{display:'grid',gridTemplateColumns:'repeat(auto-fit,minmax(260px,1fr))',gap:20}}>
+          {[
+            {icon:'📋',color:'#4F46E5',bg:'rgba(79,70,229,0.1)',title:'Post a Need',desc:'Share what you need help with. Add details, category, and urgency level.'},
+            {icon:'🔍',color:'#14B8A6',bg:'rgba(20,184,166,0.1)',title:'Browse & Help',desc:'Find community needs near you. Filter by category and offer your help.'},
+            {icon:'🤝',color:'#F59E0B',bg:'rgba(245,158,11,0.1)',title:'Connect & Fulfill',desc:'Connect with people, fulfill needs, and build a stronger community together.'},
+          ].map(({icon,color,bg,title,desc})=>(
+            <div key={title} className="card" style={{padding:28}}>
+              <div style={{width:48,height:48,borderRadius:13,background:bg,display:'flex',alignItems:'center',justifyContent:'center',marginBottom:16,fontSize:22}}>{icon}</div>
+              <h3 style={{fontSize:17,fontWeight:700,marginBottom:8}}>{title}</h3>
+              <p style={{fontSize:14,color:'#64748B',lineHeight:1.65}}>{desc}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+      <section style={{padding:'0 20px 72px'}}>
+        <div style={{maxWidth:1000,margin:'0 auto',background:'linear-gradient(135deg,#4F46E5,#6366F1 50%,#14B8A6)',borderRadius:20,padding:'52px 40px',textAlign:'center'}}>
+          <h2 style={{fontSize:30,fontWeight:800,color:'white',letterSpacing:'-0.02em',marginBottom:12}}>Ready to make a difference?</h2>
+          <p style={{fontSize:15,color:'rgba(255,255,255,0.75)',marginBottom:28}}>Join thousands already helping each other every day.</p>
+          <Link to="/register" style={{background:'white',color:'#4F46E5',padding:'13px 32px',borderRadius:10,fontWeight:700,fontSize:15,display:'inline-flex',alignItems:'center',gap:8,boxShadow:'0 4px 20px rgba(0,0,0,0.2)'}}>
+            Join HelpBridge →
+          </Link>
+        </div>
+      </section>
     </div>
   )
 }
